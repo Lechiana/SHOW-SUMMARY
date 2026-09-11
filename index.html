@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Size Monitoring Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div><div class="eyebrow">LOCAL DATA INTELLIGENCE</div><h1>สรุปการเติบโตของข้อมูลรายวัน</h1></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="themeToggle" title="สลับธีม" aria-label="สลับธีม">☼</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-row">
+        <div><p class="kicker">DATABASE SIZE MONITORING DASHBOARD</p><h2>เห็นการเปลี่ยนแปลงของข้อมูล<br><em>ในทุกวัน</em> ได้ชัดเจนขึ้น</h2><p class="hero-copy">บันทึกขนาดข้อมูล วิเคราะห์อัตราการเติบโต และคาดการณ์อนาคต ทั้งหมดทำงานบนเครื่องของคุณ</p></div>
+        <div class="hero-meta"><span id="lastUpdated">อัปเดตล่าสุด —</span></div>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel chart-panel">
+          <div class="panel-head"><div><p class="section-label">GROWTH OVERVIEW</p><h3>แนวโน้มขนาดข้อมูล</h3></div><div class="chart-filters"><span class="chart-type-label">รูปแบบกราฟ</span><div class="chart-type-switch" role="group" aria-label="เลือกรูปแบบกราฟ"><button type="button" class="chart-type-option" data-chart-type="line" aria-pressed="true">กราฟเส้น</button><button type="button" class="chart-type-option" data-chart-type="bar" aria-pressed="false">กราฟแท่ง</button></div></div></div>
+          <div class="chart-wrap"><canvas id="growthChart"></canvas><div class="empty-chart" id="emptyChart">เพิ่มข้อมูลอย่างน้อย 1 รายการเพื่อดูกราฟ</div></div>
+          <div class="chart-legend" id="chartLegend"></div>
+        </div>
+        <div class="panel analysis-panel">
+          <div class="panel-head"><div><p class="section-label">GROWTH ANALYSIS</p><h3>วิเคราะห์การเติบโต</h3></div><span class="status-pill" id="statusPill">—</span></div>
+          <div class="analysis-main"><div><span class="muted">สถานะวันนี้</span><strong id="statusLabel">—</strong></div><div class="status-orb" id="statusOrb">—</div></div>
+          <div class="analysis-list" id="analysisList"></div>
+          <div class="trend-box"><div><span class="muted">แนวโน้ม 7 วันล่าสุด</span><strong id="trendLabel">—</strong></div><div class="mini-bars" id="miniBars"></div></div>
+        </div>
+      </section>
+
+      <section class="content-grid lower-grid">
+        <div class="panel projection-panel"><div class="panel-head"><div><p class="section-label">PROJECTION</p><h3>ประมาณการขนาดในอนาคต</h3></div><span class="estimate-tag">ESTIMATE</span></div><p class="panel-note">คำนวณจากค่าเฉลี่ยการเพิ่มขึ้นต่อวันของข้อมูลปัจจุบัน</p><div class="projection-grid" id="projectionGrid"></div><div class="projection-explainer"><div class="explainer-icon">i</div><div><strong>วิธีคำนวณ</strong><p>ขนาดประมาณการ = ขนาดล่าสุด + (ค่าเฉลี่ยที่เพิ่มต่อวัน × จำนวนวันในอนาคต)</p><small>ค่าเฉลี่ยที่เพิ่มต่อวันคำนวณจากส่วนต่างของข้อมูลแต่ละวันที่บันทึกไว้ จึงเป็นค่าประมาณการจากแนวโน้มปัจจุบัน ไม่ใช่ค่ารับประกันจริง</small></div></div></div>
+        <div class="panel add-panel" id="addPanel" tabindex="-1"><div class="panel-head"><div><p class="section-label">DATA ENTRY</p><h3 id="formTitle">เพิ่มข้อมูลใหม่</h3></div><button class="text-btn" id="cancelEditBtn" hidden>ยกเลิก</button></div><form id="recordForm"><div class="form-grid"><label class="date-field">วันที่<div class="date-picker"><input type="date" id="dateInput" required tabindex="-1"><button type="button" class="date-picker-trigger" id="datePickerBtn"><span class="calendar-icon">▣</span><span id="datePickerLabel">เลือกวันที่</span><span class="date-chevron">⌄</span></button><div class="date-popover" id="datePopover" hidden><div class="calendar-head"><button type="button" class="calendar-nav" id="prevMonthBtn">‹</button><strong id="calendarMonthLabel"></strong><button type="button" class="calendar-nav" id="nextMonthBtn">›</button></div><div class="calendar-weekdays"><span>อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span></div><div class="calendar-grid" id="calendarGrid"></div><button type="button" class="today-btn" id="todayBtn">วันนี้</button></div></div></label><label>ขนาดข้อมูล<input type="number" id="sizeInput" min="0" step="any" placeholder="0" required></label><label>หน่วย<select id="unitInput"><option>MB</option><option>GB</option><option>TB</option></select></label></div><div class="form-footer"><span></span><button class="primary-btn" type="submit"><span>＋</span> <span id="submitLabel">บันทึกข้อมูล</span></button></div></form></div>
+      </section>
+
+      <section class="panel table-panel"><div class="panel-head table-head"><div><p class="section-label">DAILY DATA</p><h3>รายการข้อมูลทั้งหมด <span class="count-chip" id="tableCount">0</span></h3></div><div class="table-actions"><button class="secondary-btn" id="importBtn">นำเข้า Backup</button><input type="file" id="importFile" accept=".json,application/json" hidden><button class="secondary-btn" id="exportJsonBtn">Export JSON</button><button class="secondary-btn" id="exportExcelBtn">Export Excel</button><button class="danger-outline" id="clearBtn" hidden>ล้างข้อมูล</button></div></div><div class="filters"><label class="date-filter range-date-label">ช่วงวันที่ <div class="date-range-picker"><input type="date" id="fromDate" tabindex="-1"><input type="date" id="toDate" tabindex="-1"><button type="button" class="filter-date-trigger range-date-trigger" id="dateRangeBtn"><span class="range-date-part"><small>ตั้งแต่</small><span id="fromDateLabel">วว/ดด/ปปปป</span></span><span class="range-arrow">→</span><span class="range-date-part"><small>ถึง</small><span id="toDateLabel">วว/ดด/ปปปป</span></span><span class="date-chevron">⌄</span></button><div class="date-popover filter-date-popover range-date-popover" id="dateRangePopover" hidden><div class="calendar-head"><button type="button" class="calendar-nav" id="rangePrevMonthBtn">‹</button><strong id="rangeCalendarMonthLabel"></strong><button type="button" class="calendar-nav" id="rangeNextMonthBtn">›</button></div><div class="calendar-weekdays"><span>อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span></div><div class="calendar-grid" id="rangeCalendarGrid"></div><div class="range-selection-box"><span>ช่วงวันที่ที่เลือก</span><strong id="rangeSelectionValue">ยังไม่ได้เลือก</strong></div><p class="range-calendar-hint" id="rangeCalendarHint">เลือกวันเริ่มต้น</p><div class="range-calendar-actions"><button type="button" class="clear-date-btn" id="rangeClearBtn">ล้างวันที่</button><button type="button" class="today-btn" id="rangeTodayBtn">วันนี้</button></div><button type="button" class="primary-btn range-apply-btn" id="dateRangeSearchBtn">กรองข้อมูล</button></div></div></label><select id="sortSelect"><option value="date-desc">วันที่ล่าสุด</option><option value="date-asc">วันที่เก่าสุด</option><option value="size-desc">ขนาดมากสุด</option><option value="size-asc">ขนาดน้อยสุด</option></select></div><div class="table-scroll"><table><thead><tr><th>วันที่</th><th class="numeric">Size MB</th><th class="numeric">Size GB</th><th class="numeric">เพิ่มจากวันก่อน MB</th><th class="numeric">เพิ่มจากวันก่อน GB</th><th class="numeric">Growth %</th><th>Action</th></tr></thead><tbody id="dataTableBody"></tbody></table><div class="empty-table" id="emptyTable" hidden><div>◌</div><strong>ยังไม่มีข้อมูล</strong><span>กดบันทึกข้อมูลใหม่เพื่อเริ่มต้นใช้งาน</span></div></div></section>
+    </main>
+
+    <footer><span>SHOW SUMMARY <small>v1.0</small></span><span>ข้อมูลทำงานภายในเครื่องนี้เท่านั้น · <button class="link-btn" id="restoreBtn">Restore Previous Data</button></span></footer>
+  </div>
+
+  <dialog id="duplicateDialog"><div class="modal-head"><div><p class="section-label">DUPLICATE RECORD</p><h3>พบข้อมูลซ้ำ</h3></div><button class="close-btn" data-close="duplicateDialog">×</button></div><p id="duplicateMessage" class="modal-note"></p><div class="modal-actions"><button class="secondary-btn" data-close="duplicateDialog">ยกเลิก</button><button class="primary-btn" id="confirmUpdateBtn">Update ข้อมูลเดิม</button></div></dialog>
+  <dialog id="importDialog"><div class="modal-head"><div><p class="section-label">IMPORT BACKUP</p><h3>นำเข้าข้อมูล</h3></div><button class="close-btn" data-close="importDialog">×</button></div><div id="importSummary" class="import-summary"></div><div class="import-mode"><label><input type="radio" name="importMode" value="merge" checked> Merge Data <small>รวมกับข้อมูลเดิมและป้องกันข้อมูลซ้ำ</small></label><label><input type="radio" name="importMode" value="replace"> Replace Data <small>แทนที่ข้อมูลเดิมทั้งหมด (มี Auto Backup)</small></label></div><div class="modal-actions"><button class="secondary-btn" data-close="importDialog">ยกเลิก</button><button class="primary-btn" id="confirmImportBtn">ดำเนินการนำเข้า</button></div></dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
